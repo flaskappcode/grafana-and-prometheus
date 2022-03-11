@@ -1,0 +1,1843 @@
+ 
+ Grafana - Visualization tool - grafana.service
+ 					
+ prometheus - Monitoring tool
+ ----------
+	|->prometheus
+	|->node_exporter
+	|->app_service
+	|->alertmanger_service 
+
+ 
+ -----------------------------------------------------------------
+ User layer: Application
+ -----------
+ Kernel layer - File,Process
+ ----------- 
+ H/w layer :
+
+ File - Data under the storage device
+ 			-----------
+ Process - Data under the CPU
+			  ---
+
+	process
+	  |
+ ----------------------------
+ |			    |
+ user process		  system process
+
+  - by user		  - by systemDaemon
+  
+  - by terminal		  - by not associated with terminal
+
+  - after user login	  - once os is loaded successfully
+    user process will	    system process will start(i.e.,before login system)
+    start		
+
+  ex: open a browswer 		ex: grafana.service - R+
+
+      IP:3000 {enter}
+  ----------------------
+      Dashboard		
+  ----------------------
+
+ ex: ssh <remotehost>	       ex: sshd 
+     mysql -u <user> -p ..     ex: mysqld 
+
+     webservice		       ex: httpd
+
+
+ Linux like os
+ --------------
+ OL[56] -> service <daemon> {start|stop|restart}  -> chkconfig --add <daemon>
+
+ OL[78] -> systemctl {start|stop|restart} <daemon>
+
+ systemctl enable <daemon> # while os booting time automatically service will start
+ 
+ # disable <daemon> 
+ systemctl disable <daemon>
+
+ How to test daemon is running or not?
+
+ systemctl is-active <deamon>
+ 
+   (or)
+ systemctl status <daemon>
+
+ // edit <deamon>.conf file
+
+ // reload a daemon 
+   systemctl daemon-reload
+   systemctl start <daemon>
+
+--------------------------------------------------------------------------------------
+  <daemon>.conf
+  ---------------
+     |_ 1. ini format - key=value format
+     |
+     |_ 2. yaml format - key: Value format
+	   -----------
+		|->structure format
+  
+
+   grafana config file - INI format
+
+   [header]
+   key=value
+ 
+-----------------------------------------------------------------------------------------------------
+ Oracle Linux OS
+ ---------------
+   install a s/w package 
+
+    1. rpm - file format => <package>-version-release.arch.rpm -> rpm -ivh <package>-version-release.rpm
+    2. yum
+       ---
+	 |-> yum install <packagename>
+	      |
+	     /etc/yum.repos.d/public-yum-ol7.repo
+			      --------------------
+					|
+					INI format
+
+		[reportHeader]
+		baseurl=URL
+		enabled=1
+		gpgkeycheck=file:///
+		gpgcheck=1
+		 ...
+
+	  vi /etc/yum.repos.d/public-yum-ol7.repo {Enter}
+
+	  append at the end of file
+	
+	 [grafana]
+	name=grafana
+	baseurl=https://packages.grafana.com/oss/rpm
+	repo_gpgcheck=1
+	enabled=1
+	gpgcheck=1
+	gpgkey=https://packages.grafana.com/gpg.key
+	sslverify=1 
+        sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+
+	:wq
+	
+	yum clean all
+	yum repolist 
+
+	yum install grafana
+
+	systemctl daemon-reload
+ 	systemctl start grafana-server
+	systemctl status grafana-server
+
+	open a broswer -> type IP:3000
+
+	login: admin
+	|
+	password: admin
+	|
+	new passwd
+	|
+	confirm_new passwd
+-------------------------------------------------------------------------------------------
+            
+          graph ->thresholds ->broken heart  
+			|	
+ 			>100 
+		  fill 
+		  |
+		apply - view 
+
+
+	 timeseries - threshold 
+	 	  |
+	
+	  	 legends
+
+
+-----------------------------------------------------------------------------------------------------
+ JSON
+ -----
+ number
+ string
+ bool
+ null
+ array - index based -> data //index [index] 
+ object - key based  -> data //pair {"Key":Value}
+					   -----
+					    |-->scalar - Single
+					    |-->collection - Array,object
+
+ array:[data1,data2,data3,data4]
+
+ {key1:150,
+  key2:1.45,
+  key3:data,
+  key4:true,
+  key5:[D1,D2,D3],
+  key6:{K1:V1,K2:V2}
+ }
+
+ [] - array
+ {} - object
+
+ timeseries - visualization - property attrs 
+
+ stat - visualization - text mode,colormode etc., 
+
+ if change the type - show error message on the panel
+			  --------------
+				|
+		type: timeseries|
+				|
+				attribute error - there is no attribute color mode
+ 
+
+
+ K1: [D1,D2,D3,D4,D5]
+
+ K2: {K1:V1,K2:V2,K3:V3}
+     ---------------------
+	|
+	|
+ K2: {K1:V1,K3:V3,K2:V2}
+      -----------------
+	 
+ [] - array - index - ordered items 
+ 
+ {} - object - key - unorderd items
+------------------------------------------------------------------------------------------------------
+
+  "id": 23763571993,
+
+
+ promQL
+  |
+ swap usage
+  |
+ query  -> panel -> visualization - swap_utilization
+				    ----------------
+					|_Added to lib (panel libs)
+
+
+ +
+ |__ ....
+ |
+ |__ add a panel from lib(panel libs) //reusability
+ 					
+--------------------------------------------------------------------------------------------------------------
+ Grafana 
+  - dashboard
+
+    1st create a newFolder 
+		   |
+		 2nd create a newDashboard
+				|
+			     3rd create a new panel1 ... panelN
+					  .........	 .......
+						
+    Save 
+    -----
+    [Folder]
+	|
+	DashBoard
+
+ -----------------------------------------------------------------------------
+   Data format - time is index
+
+  Time Series DataBase (TSDB)
+  -----------------------------
+    -> time series - which is a set of data points that are assoicated with timestamps.
+    -> A time series DB is a DB that contains data for each point in time.
+	
+    -> Ex: JVM Metrics  from the java application
+	   Flask Metrics from the python-frame work (MVT) appln
+ 
+	RDBS -> Timeseries ->Grafana 
+
+ influxdb- TSDB
+ -----------
+     |_sotring,collecting,visualizing & managing time-series data.
+
+
+ 
+	process - metrics - numeric data - aggregation
+	     |__ Logs     - Textual data - what happend
+	    |___ traces   - execution path for individual requests
+
+
+ monitoring				logging			Tracing
+ -----------				--------		--------
+ prometheus 				elastic			elastic apm
+ cortex					grafana loki		zipkin
+ Thanos					logdna			opentracing
+ graphite				....	
+ ...		
+ 
+
+
+ TSDB - measurement  (table)
+
+  measurement field=value,.... <timeseries>
+
+  insert measurementName field=Value,field="value",field=Value
+						|	  |___bool type (t,T,true,True,TRUE,f,F,False etc)
+						|_string type value
+
+		
+
+
+
+     insert IPC,host=server1 shm_value=345
+
+
+ ----------------------------------------------------
+ 
+ 1st step : test data source - add data source to grafana then test
+		OK
+
+ 2nd step : create a new panel - by default will get grafana/promethes 
+		|
+	    Query editor - select our datasource
+					|
+				select meaurement - Query - do visualization
+			
+ --------------------------------------------------------------------------------------------------
+ Recap
+ ------
+ grafana - visualization tool
+ 
+   - types of visualization
+		|
+		set of attributes - mutable
+		       ----------
+			->JSON - array and object
+						
+  - dashboard - collection of panels
+	
+  datasource - TSDB
+	|
+	index - timestamp 
+
+ 1st create a folder 
+		|
+		2nd configure datasource - add a datasource - http end points
+		|
+		3rd - create a newdashboard - create new panel
+							  |
+						4th go to query editor
+							  |
+							select datasource (recap-step 2)
+							  |
+							select measurement
+							  |
+							 using quiery editor - select your query
+		- do visualization
+
+  panel
+  -----
+    |->add panel to lib
+    |->copy-paste
+    |->duplicate a panel
+    
+  panel attrs - json format
+		----
+		 |->mutable - we can edit
+
+  we can share dashboard in URL format & json format
+ 	   |
+	  json format
+
+  import json file into dashboard
+  -------------------------------------------------------------------------------------------------
+ 
+  variable - placeholder - namespace - it's holding a value
+	|
+	holding a more than one value
+	
+  data set is large
+
+ =
+ !=
+ <
+ >
+ <=
+ >=
+ -------//relational operators
+
+
+ =~
+ !~
+ -----//Regx operators 
+
+ in grafana varaible 
+ --------------------
+ variableName  | Value |
+          
+
+   $variableName ->Value
+
+ ex:
+ ---
+ host_name| .... |
+  |
+ variable
+
+   $host_name
+   -----------
+
+ regx
+ -----
+  - search pattern in more specific pattern
+			   --------
+     regx chars
+     -----------
+       ^ $ ^pattern$ . .* | () {} + 
+
+ ^pattern - matches pattern line starts with 
+
+
+  pattern$ - matches pattern line ends with
+  
+  ^server1   -  server1 ...... //matched 
+
+
+  "server1" = "server1" - OK
+
+  "server1," = "server1" - not matched
+
+   "server1," =~ "server1" - matched
+    -------    |
+		bind (or) match (or) regx operators 
+
+    ^pattern$  ==> 
+    ..........
+	|
+	pattern only style
+
+  ^sales  ---> sales details - matched ; 101,ram,sales,pune - not matched; sales,101,raj,pune - matched
+	       -----
+
+   sales$ ---> asfasdsafsdfsd sales  - matched
+			      -----
+
+   ^sales$ ----> sales - matched 
+		 -----
+		 sales, - not matched
+		 <>sales - not matched 
+
+    		 salesales - not matched 
+
+   
+   
+   $variableName ->Value
+
+ ex:
+ ---
+ host_name| node1 |
+  |
+ variable
+
+   $host_name  --> node1
+   -----------
+
+	^$host_name$
+         ==========
+  pattern notation is /pattern/
+
+		 =~ /^$host_name$/
+			
+		 =~ /^variableName$/
+		
+----------------------------------------------------------------------------------------------------
+ 
+ annotations
+ ------------
+
+ sales count -   100,200,150,500,100,200,50,6000
+					 -- =====
+					
+ ====================================================================================================
+ 
+ DB1 - CPU  Memory  IO  swap 
+       ---  ------ ---  -----
+	|	|   |    |
+      sys>   <      >    <  //condition - alert ------notify---user/group/team
+							|
+							via - mail,slack,etc.,
+
+ 1st - configure channels
+ |
+ 2nd - create alert rule(s) - condition - True ---notify---. 
+
+
+ [grafana] - monitor ..CS
+			|
+			notify ---- channel
+				     ....  
+-------------------------------------------------------------------------------------------------
+
+https://github.com/flaskappcode/grafana-and-prometheus
+
+
+ 1. grafana dashboard - html page 
+ 2. oci metrics
+ 3. loki log
+ 
+ ----------------------------------------------------------------------------------------------
+  prometheus 
+	|_ open source monitoring tool & timeseries DB
+        |_ soundcloud
+	
+	|_ promQL
+	
+	|_ metricname key=value  value
+	   ---------- =========  ------
+
+	temperature  location=city	90
+	-----------  ==============     ---
+			|		 |__actual data for this metric
+			label
+
+	|_ go  language
+	
+	Syntax:-
+	-------
+   	prometheus metric format
+
+	metricName {key1=value,key2=value2,key3=value3,..keyN=valueN} SAMPLEVALUE
+	---------- ================================================== ------------
+
+	metric types
+	------------
+	1. counter
+	2. gauge
+	3. histogram
+	4. summary
+
+        process_cpu_seconds_total{instance="localhost:9090", job="prometheus"}  1.2636081
+	------------------------- ==========================================    ----------	
+				
+
+ 	
+  prometheus_engine_query_duration_seconds{instance="localhost:9090", job="prometheus", quantile="0.5", slice="inner_eval"} 0
+
+					
+ 
+  http_req_dur_sec_bucket //http requests duration sec
+  {..server='',endpoint=/} N
+ 
+ ------------------------------------------------------------------------------------------------
+  1. prometheus configuration - yaml format 
+
+  2. prometheus node(or) components - individual configuration file(yaml format)
+    ---------------------------------
+	|_ service (or) unit file
+			---------//daemon process(system process)
+
+ ex: prometheus server -> prometheus.yml prometheus.service
+			  -------------- ===================
+     alertmanager   ----> alertmanager.yml alertmanager.service
+			  ---------------- ====================
+
+     node_exporter  ----->node_exporter.yml  node_exporter.service
+			  ----------------   -----------------------
+
+						
+ ------------------------------------------------------------------------------------------
+ yaml file format
+ -----------------
+
+ filename: p1.yml (or) p1.yaml
+
+ data 
+    |_ scalar,collection //key:value pair format
+
+ key:<s>Value
+        -----
+	 |->int,float,str,bool (single value) - scalar 
+
+ key:<s>Value
+	-----
+	|->collection - array,object
+
+
+ key:<s>[v1,v2,v3,v4,v5,v6,v7..vn]
+	
+	(or)
+
+ key:
+ -<s>v1
+ -<s>v2
+ -<s>v3
+ -<s>v4
+ -<s>v5
+  ..
+ -<s>Vn
+
+ key:<s>{key1:<s>Value1,Key2:<s>Value2,Key3:<s>[V1,V2,v3],Key4:<s>{K1: V1,K2: V2}}
+		(or)
+
+ key1:
+ <><>K1:<>Value
+ <><>K2:<>Value
+ <><>K3:<>[V1,V2,V3,...Vn]
+ <><>K4:<>{K1: V1,K2: V2}
+
+
+ {K1: 100,K2: 200,K1: 300}
+		  -------
+		    |_key duplication  ->{K1: 300,K2: 200}
+
+ {packages: [httpd,apache2,gcc,irb]} 
+
+ {packages: {P: httpd,P: apache2}} # key duplication
+
+ {packages: []} # 1 to many value - dict/object of list/array
+	    --
+	     |
+	    [V1,V2,V3,..Vn]
+
+  {packages: [{P: httpd},{P: apache2},{P: gcc},{P: irb}]}
+   --------   ----------|------------|--------|--------
+		 0		1	2	3
+
+	packages[0][P] ->httpd
+	pacakges[1][P] ->apache2
+
+  packages:
+  - P: httpd
+  - P: apache2
+  - P: gcc
+  - P: irb
+  ----------------------//prometheus scrape_config format 
+	
+
+ 
+  {packages: [{P: httpd},{P: apache2},{P: [gcc,g++,gdb]},{P: irb}]}
+   --------   ----------|------------|------------------|----------
+
+ 
+
+  packages:
+  - P: httpd
+  - P: apache2
+  - P: [gcc,g++,gdb]
+  - P: irb
+
+   (or)
+ 
+  packages:
+  - P: httpd
+  - P: apache2
+  - P:
+    - gcc
+    - g++
+    - gdb
+  - P: irb
+
+ 
+process_cpu_seconds_total{instance="localhost:9090", job="prometheus"}
+			
+process_cpu_seconds_total{instance="10.20.30.40:9090", job="prometheus"}
+
+process_cpu_seconds_total{instance="10.23.45.34:9090", job="prometheus"}
+
+
+ 
+process_cpu_seconds_total{instance="localhost:9090", job="prometheus"}
+
+process_cpu_seconds_total{instance="localhost:9090", job="mysql"}
+
+
+
+
+
+
+
+ 
+  {packages: [{P: httpd},{P: apache2},{P: gcc},{P: irb}]}
+   --------   ----------|------------|--------|--------
+		 0		1	2	3
+
+  {packages: [{P: httpd},{P: httpd},{P: httpd}]}    Vs {packages: [{P: httpd,P: apache2}]}
+	                |          |				    | ------|----------|
+		0	    1		2 <==index			      duplicate key
+		
+ - {job: prometheus,instance: localhost:9090}  <= 0th index Array
+ - {job: prometheus,instance: localhost:9090}  <= 1st index Array
+
+   
+
+  {packages: [{P: httpd},{P: httpd},{P: httpd}]}
+
+   packages[0][P]="httpd2.5"
+   packages[1][P]="apache2"
+  
+  {packages: [{P: httpd2.5},{P: apache2},{P: httpd}]}
+
+  
+----------------------------------------------------------------------------------------------
+  install prometheus server
+  --------------------------
+  wget https://github.com/prometheus/prometheus/releases/downloads/v2.2.1/prometheus-2.2.1.linux-amd64.tar.gz
+
+  tar -xzvf prometheus-2.2.1.linux-amd64.tar.gz
+
+  cd prometheus-2.2.1.linux-amd64
+
+  # create a user
+  
+  useradd --no-create-home --shell /bin/false prometheus
+  
+  mkdir -p /etc/prometheus /var/lib/prometheus
+
+  # set ownership
+
+  chown prometheus:prometheus /etc/prometheus
+  chown prometheus:prometheus /var/lib/prometheus
+
+  # copy binaries
+  
+  cp prometheus /usr/local/bin
+  cp promtool /usr/local/bin
+
+  chown prometheus:prometheus /usr/local/bin/prometheus
+  chown prometheus:prometheus /usr/local/bin/promtool
+
+  # copy config 
+
+  cp -r consoles /etc/prometheus
+  cp -r console_libraries /etc/prometheus
+  cp prometheus.yml /etc/prometheus/prometheus.yml
+  
+  chown -R prometheus:prometheus /etc/prometheus/consoles
+  chown -R prometheus:prometheus /etc/prometheus/console_libraries
+
+  vi /etc/systemd/system/promethes.service {Enter}
+  [Unit]
+  Description=Prometheus
+  Wants=network-online.target
+  After=network-online.target
+
+ [Service]
+ User=prometheus
+ Group=prometheus
+ Type=simple
+ ExecStart=/usr/local/bin/prometheus \
+    --config.file /etc/prometheus/prometheus.yml \
+    --storage.tsdb.path /var/lib/prometheus/ \
+    --web.console.templates=/etc/prometheus/consoles \
+    --web.console.libraries=/etc/prometheus/console_libraries
+
+ [Install]
+ WantedBy=multi-user.target
+   
+  :wq 
+
+  systemctl daemon-reload # reload system daemon
+  
+  systemctl enable prometheus # to start prometheus service automatically during os booting time
+  
+  systemctl start prometheus  # to start prometheus service
+
+  systemctl status prometheus # test prometheus service is running or not
+
+  # read an existing configuration params
+  # -------------------------------------
+
+  cat /etc/prometheus/prometheus.yml
+
+  |
+  open a web broswer -> 127.0.0.1:9090 {Enter}
+  
+  |  promethes page |
+
+ ---------------------------------------------------------------------------
+
+
+  [localhost:9090] 
+
+   Linux based system
+   -------------------
+   file: /etc/hosts
+         ------------
+	  FQDN IPAddress alias
+
+	  host01.example.com 10.20.30.40 host01
+
+   	 ..
+  ping host01.example.com
+	(or)
+  ping 10.20.30.40
+	(or)
+  ping host01
+  
+  ..... 
+
+  ssh host01.example.com
+	yes
+	(or)
+  ssh 10.20.30.40
+	(or)
+  ssh host01
+	
+ ------------------------------------------//OK
+	|
+	
+  node exporter 
+  --------------
+ 
+  
+  [node1] ------------------ [prometheus server]
+
+				metric name format is  -> node_<metricName> 
+				----------------------    =================
+----------------------------------------------------------------------------------------
+
+ wget https://github.com/prometheus/node_exporter/releases/download/v0.16.0.linux-amd64.tar.gz
+  
+ node exporter installation script
+ -------------------------------------
+ vi node_exporter_install.sh {Enter}
+ 
+ #!/bin/bash
+NODE_EXPORTER_VERSION="0.16.0"
+wget https://github.com/prometheus/node_exporter/releases/download/v${NODE_EXPORTER_VERSION}/node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64.tar.gz
+tar -xzvf node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64.tar.gz
+cd node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64
+cp node_exporter /usr/local/bin
+
+# create user
+useradd --no-create-home --shell /bin/false node_exporter
+
+chown node_exporter:node_exporter /usr/local/bin/node_exporter
+
+echo '[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=node_exporter
+Group=node_exporter
+Type=simple
+ExecStart=/usr/local/bin/node_exporter
+
+[Install]
+WantedBy=multi-user.target' > /etc/systemd/system/node_exporter.service
+
+# enable node_exporter in systemctl
+systemctl daemon-reload
+systemctl start node_exporter
+systemctl enable node_exporter
+
+ :wq
+
+ systemctl status node_exporter
+
+ Running - OK
+
+ -----------------------------------------------------------------------------
+  Go to prometheus server -> edit prometheus config file 
+
+  vi /etc/prometheus/promtheus.yml 
+
+ 
+  # at the endof line 
+
+  - job_name: 'node_DB'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['<remoteIP>:9100']
+
+  :wq
+
+   systemctl restart prometheuse
+
+   systemctl status prometheuse (or) systemctl is-active prometheus
+   # Running				active 
+   # OK
+ -------------------------------------------------------------------------------
+    open a broswer -> addressbar -> [IPAddress:9090]
+					|
+					status
+					|
+					targets
+					........
+  [remoteIP]		Up		OK
+
+  ------------------------------------------------------------------------------
+   open a broswer -> addressbar -> [IPAddress:9090]
+   |
+   query broswer ->node 
+
+ 
+
+ regx
+ -----
+  - search pattern in more specific pattern
+			   --------
+     regx chars
+     -----------
+       ^ $ ^pattern$ . .* | () {} + 
+
+ ^pattern - matches pattern line starts with 
+
+
+  pattern$ - matches pattern line ends with
+  
+  ^server1   -  server1 ...... //matched 
+
+
+  "server1" = "server1" - OK
+
+  "server1," = "server1" - not matched
+
+   "server1," =~ "server1" - matched
+    -------    |
+		bind (or) match (or) regx operators 
+
+    ^pattern$  ==> 
+    ..........
+	|
+	pattern only style
+
+  ^sales  ---> sales details - matched ; 101,ram,sales,pune - not matched; sales,101,raj,pune - matched
+	       -----
+
+   sales$ ---> asfasdsafsdfsd sales  - matched
+			      -----
+
+   ^sales$ ----> sales - matched 
+		 -----
+		 sales, - not matched
+		 <>sales - not matched 
+
+    		 salesales - not matched 
+
+   
+   
+   $variableName ->Value
+
+ ex:
+ ---
+ host_name| node1 |
+  |
+ variable
+
+   $host_name  --> node1
+   -----------
+
+	^$host_name$
+         ==========
+  pattern notation is /pattern/
+
+		 =~ /^$host_name$/
+			
+		 =~ /^variableName$/
+
+
+  .(dot) - match any single character except \n char 
+  
+   .* -list of all
+
+   character class - []
+   -------------------
+
+  [][]
+
+  [Aakv]run
+  ============> Arun arun krun vrun
+ 
+  [Aa][Rr]un
+  -----------> Arun ARun arun aRun //matched 
+
+  [a-z] 
+  [A-Z]
+  [a-zA-Z]
+  [0-9]
+  [a-zA-Z0-9]
+ 
+  ^[a-z].*[A-Z]$
+
+  ^$ - empty line
+ 
+  Pattern1|Pattern2|Pattern3 ->ERE(any one pattern is matched - True )
+
+  (Pattern1)(Pattern2) - both pattern should match in same order
+	
+  <Pattern>+ - 1 or more
+  ---------- 
+
+  {} - range 
+
+  <pattern>{n} - n times
+  ------------
+  ab{2}c => abbc 
+   ----
+  
+  instance =~ "^[0-9]*:[0-9]{4}"
+
+  <pattern>{n,} - minimum n times, maximum nolimit
+			---		  -------
+  <pattern>{n,m} - minimum n times
+		   maximum m times
+
+  [0-9]{2,4}
+   ---  ====
+
+ --------------------------------------------------------------------------------------------------------
+
+
+  flask frame -> 
+
+	/
+	/<dynamic>
+		|___ template 
+			
+
+ yum.oracle.com/OL7/..... 
+ ---------------------------
+	|
+	parse rpm
+		|
+		package-version...rpm
+		|
+		
+  AIO
+
+  DB
+  -------
+ --------------------------------------------------------------------------------------------------
+ Linux
+ ------
+ /dev/null - cleanup 
+ /dev/zero - data 
+
+ ls -lh process.log
+    ----
+     10KB
+
+ clean the content 
+
+ cp /dev/null process.log
+ ls -lh process.log
+     0
+  
+ 
+ cp /dev/zero p1.log		-------- [ disk I/O ]
+ ..................... 	 
+  
+ -------------------------------------------------------------------------------------------------
+ promQL
+ alert management
+ client lib monitoring 
+ cloud watch 
+ -------------------------------------------------------------------------------------------------
+ recap
+ ------
+ 
+ process_cpu_seconds_total{instance="localhost:9090", job="prometheus"}
+
+ process_cpu_seconds_total{instance="localhost:9090"}
+  
+ process_cpu_seconds_total{job=~"prometheus|node_exporter"}
+
+ metricName={Key=~"Regx"}
+ -------------------------
+
+ promQL
+ ------
+ - prometheus Query language
+ - the user select and aggregate time series data in realtime
+ - prometheus broswer (or) expression broswer 
+
+ - components of promQL
+	1. metricname
+	2. 1 or more labels
+	3. value(float 64) - recent timestamp
+	4. timestamp # not appear in the query console
+		|
+		|_ # visible in chart/graph
+
+	5. Data
+	     |_ instant vector  - single value
+	     |_ range vector - multiple values
+
+	http_requests_total
+
+	rate() - data points of how many occurences happened during the N mts
+	ex:
+	---
+	rate(rangevector) ->instant_vector
+
+	http_requests_total //instant_vector (or) scalar (single data)
+
+	http_requests_total[5m] //range_vector
+
+	rate(http_requests_total[5m])
+
+		
+	metricName[5m] - minutes
+		  [5s] - seconds
+		  [5h] - hours
+		  [5d] - day
+		  [5w] - week
+	          [5y] - year
+	----------------------------->range vector
+
+
+        sum by(status_code)(rate(prometheus_http_requests_total[5m]))
+
+ 	rate(prometheus_http_requests_total{code =~ "[23].*"}[5m])>0.02*rate(prometheus_http_requests_total[5m])
+ 	
+	http error rate
+	==============
+	total_requests -> status_code != 200 / http_requests_total
+	
+
+	up{job="prometheus"} or up{job="node"} 
+	---------------------------------------
+	|
+	|_ up{job =~ "prometheus|node"}
+		
+	   up{job =~ "(prometheus)(node)"}  -->up{job="prometheus"} and up{job="node"}
+
+	(avg by(instance)(rate(node_cpu_seconds_total{job ="node",mode =~ "irq|sortirq"}[5m])))>65
+
+  ---------------------------------------------------------------------------------------------------------------------------------------
+  Alertmanager
+  ------------
+  - single binary file - which handles alerts sent by prometheus server.
+  - once recevied alert notification from prometheus server - notifies end user through email,slack ot other tools(channels)
+  
+  1. setup and configure AlertManager
+  
+  2. Configure the config file on prometheus // prometheus will communicate alertmanager
+
+	
+  3. Define alert rules in prometheus server configuration (rule files)
+     -----------------------------------------------------
+
+  4. Define channel - do alert mechanism
+
+
+
+	+-------------+
+	| prometheus  | ---push alert --->--- [ alert manager ] --notify-->-- mail,slack etc.,
+        +-------------+
+								-----------------------------
+ 									|_alert config file
+  1. setup and configure AlertManager					/etc/alertmanager/alertmanager.yml
+  ===================================
+  I) install a alertmanager binary 
+  ------------------------------
+
+ file: alert_manager_install.sh
+
+ #!/bin/bash
+
+ ALERTMANAGER_VERSION="0.15.0"
+  
+  
+wget https://github.com/prometheus/alertmanager/releases/download/v${ALERTMANAGER_VERSION}/alertmanager-${ALERTMANAGER_VERSION}.linux-amd64.tar.gz
+
+  
+  tar xvzf alertmanager-${ALERTMANAGER_VERSION}.linux-amd64.tar.gz
+
+  
+  cd alertmanager-${ALERTMANAGER_VERSION}.linux-amd64/
+  
+
+  # create user
+
+    
+  useradd --no-create-home --shell /bin/false alertmanager 
+
+
+  
+# create directories
+  
+mkdir /etc/alertmanager
+
+  mkdir /etc/alertmanager/template
+
+  mkdir -p /var/lib/alertmanager/data
+  
+  
+# touch config file
+
+  touch /etc/alertmanager/alertmanager.yml
+  
+  # set ownership
+  
+chown -R alertmanager:alertmanager /etc/alertmanager
+  
+chown -R alertmanager:alertmanager /var/lib/alertmanager
+
+
+  
+# copy binaries
+
+  cp alertmanager /usr/local/bin/
+  
+cp amtool /usr/local/bin/
+
+  # set ownership
+
+  chown alertmanager:alertmanager /usr/local/bin/alertmanager
+  
+chown alertmanager:alertmanager /usr/local/bin/amtool
+
+
+  
+
+ # setup systemd
+ 
+echo '[Unit]
+ 
+Description=Prometheus Alertmanager Service
+
+ Wants=network-online.target
+ 
+After=network.target
+ 
+
+[Service]
+
+ User=alertmanager
+
+ Group=alertmanager
+
+ Type=simple
+
+ ExecStart=/usr/local/bin/alertmanager \
+    
+          --config.file /etc/alertmanager/alertmanager.yml \
+ 
+          --storage.path /var/lib/alertmanager/data
+
+ Restart=always
+
+
+ [Install]
+ 
+WantedBy=multi-user.target' > /etc/systemd/system/alertmanager.service
+
+
+ 
+systemctl daemon-reload
+
+ systemctl enable alertmanager
+
+ systemctl start alertmanager
+ 
+ ----------------------------------------------------------------------
+  chmod a+x alert_manager_install.sh
+  ./alert_manager_install.sh
+
+ # alertmanager bin - installed;setup(service) file is created;start the daemon
+ # ------------------
+
+
+
+ 
+ 2. Configure the config file on prometheus // prometheus will communicate alertmanager
+ 
+ vi /etc/prometheus/prometheus.yml {Enter}
+
+ 
+alerting:
+  
+   alertmanagers:
+  
+   - static_configs:
+    
+      - targets:
+      
+        - localhost:9093
+
+ :wq
+
+ systemctl restart prometheuse
+
+ ---------------------------------------------------------------------------------------
+
+ 3. Define alert rules in prometheus server configuration (rule files)
+ -----------------------------------------------------------------------
+
+ Refer /etc/prometheus/prometheus.yml file
+ =====
+ alerting:
+ |
+ | 
+ rule_files:
+ - /etc/prometheus/filename1.yml <== alert rule file
+	           
+ - /etc/prometheus/filename2.yml <== alert rule file  
+
+
+ alert template file (or) alert_rule format 
+ -------------------------------------------
+ groups:
+ - name: <name of the user defined value>
+   rules:
+   - alert: <name of the alert (user defined)>
+     expr:  promQL
+     |
+     for: <mnts>
+     labels:
+     <>serverity:<s>{critical;info;warining}
+     annotations:
+       summary: 'User defined message(or) Template variables'
+
+ 
+ Example:-
+ ---------
+
+	annotations:
+          summary: "Node name {{ $labels.instance }} down state"
+				
+
+
+(node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes < 10 and ON (instance, device, mountpoint) predict_linear(node_filesystem_avail_bytes{fstype!~"tmpfs"}[1h], 24 * 3600) < 0 and ON (instance, device, mountpoint) node_filesystem_readonly == 0
+ ===========================          ===========================
+
+ ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+ Task
+ -----
+ In grafana 
+		1 CPU	   2. RES    3.VIRT
+		=====	   ======    =======
+
+  		|		|	|
+		library - lib panel
+		|
+		
+  |
+ NewDashboard
+  |
+  newpanel - import lib to dashboard
+				
+  playlist
+  ........
+
+ step 1: open a grafana ->configure datasource ->prometheuse (running)
+
+ step 2: create a newFolder ->newDashboard ->newPanel
+
+ step 3: promQL - ...do visualization 
+
+  // process_cpu_seconds_total;process_resident_memory_bytes;process_virtual_memory_bytes
+ 
+ step 4: convert to lib panel
+ step 5: save this dashboard
+
+
+ next task
+ -----------
+ step 1: newDashboard - import existing lib panels 
+ |
+ create a playlist
+
+ ----
+=======================================================================================================
+		 
+
+ 4. Define alert notification (or) channel notification
+ ----------------------------------------------------------
+ vi /etc/alertmanager/alertmanager.yml {Enter}
+
+ 
+global:
+  
+   smtp_smarthost: 'localhost:25'
+  
+   smtp_from: 'alertmanager@prometheus.com'
+  
+   smtp_auth_username: ''
+  
+   smtp_auth_password: ''
+  
+   smtp_require_tls: false
+
+
+ templates:
+
+ - '/etc/alertmanager/template/*.tmpl'
+
+
+ route:
+  
+   repeat_interval: 1h
+  
+   receiver: operations-team
+ 
+
+receivers:
+
+ - name: 'operations-team'
+  
+   email_configs:
+  
+   - to: 'operations-team+alerts@example.org'
+  
+   slack_configs:
+  
+   - api_url: https://hooks.slack.com/services/XXXXXX/XXXXXX/XXXXXX
+
+     channel: '#prometheus-course'
+ 
+    send_resolved: true
+
+ :wq 
+
+ systemctl restart alertmanager
+
+ To configure slack
+ ===================
+ (1) https://company.slack.com/apps {enter} 
+
+			[ manage ]<==(2) go to manage
+
+   [customintegration] (3)
+		
+			[incoming webhooks] (4)
+
+   [add a configurations] (5)
+   
+   [choose channel] (6)
+   
+    #prometheus-course # Refer /etc/alertmanager/alertmanager.yml under slack_configs key
+        Adding incoming 
+	    webhosts		 (7)
+              integration
+
+   webhook URL: https://hooks.slack....(8) - copy this link 
+
+
+   vi /etc/alertmanager/alertmanager.yml {enter} 
+   paste into /etc/alertmanager/alertmanager.yml config file
+		api_url: <paste link> (9)
+			  
+   :wq
+
+   systemctl restart alertmanager
+   systemctl status alertmanager
+   systemctl restart prometheus 
+
+  --------------------------------------------------------------------------------------------------
+ 
+  Flask - webframework - python based web appln
+  -----
+
+  file: p1.py
+
+   view -> render html page
+ -----------------------------------------------------------------------------------------------------
+
+  1) to monitor local system metric 
+
+   install prometheus
+   start prometheus
+   |
+   localhost:9090/metrics - local 
+
+
+  2) node exporter
+     -------------
+	|
+	to monitor external node
+
+	 
+  [ prometheus ] <----------------> [node1] 
+			network
+			  	    node_exporter - bin file(act as agent)
+					|
+					collect node1 metric details
+					|
+	----------------<---------------
+				# node_exporter.service <== act as a daemon
+
+   3) pushgateway
+      -----------
+			[batch-jobs]
+			  |
+			pushgateway - bin file(act as agent)
+			  |			
+			collect batch job events
+			 # pushgateway act as a service
+			  |
+		-----<----
+			
+
+  4) clientlibs (or) appln monitor
+     --------------------------------
+
+		[ Appln ]
+		   |
+		[prometheus-8000]	
+		   |
+		   |
+    --------<------
+  [prometheus:9090]
+
+
+  5) alertmanager
+     ------------
+	 - prometheus will monitor node/job/event 
+				|
+				critical state(based on promQL condition)
+				|
+				prometheus push alert to alertmanager - notify - channel
+	
+	- install alertmanager - alertmanager is bin file
+	- setup alertmanager - alertmanager.service
+	- alertmanager configuration 
+
+	
+ ------------------------------------------------------------------------------------------------
+
+  6) service discovery
+  ----------------------
+  -> automatically monitor your service 
+
+ ->create user
+ ->install kubernetics
+ ->install node
+	
+ git clone https://github.com/wardviaene/on-prem-or-cloud-agnostic-kubernetes.git
+
+ cd on-prem-or-cloud-agnostic-kubernetes{enter}
+
+ cd scripts {enter}
+
+ ls {enter}
+
+ create-user.sh install-kubernetes.sh install-node.sh
+
+ ./install-kubernetes.sh
+
+ ./install-node
+
+
+
+
+
+ [m/c] <---------- [prometheus-server]
+		 	
+  node_exporter .........
+
+ 
+ [cloud]
+ [cluster]
+
+
+ [cloud]
+   |
+  [ node_exporter ]
+	|
+	|----------------------
+ 
+ 
+ ---------------------------------------------------
+ 
+ git clone https://github.com/wardviaene/on-prem-or-cloud-agnostic-kubernetes.git
+
+ cd on-prem-or-cloud-agnostic-kubernetes{enter}
+
+ cd scripts {enter}
+
+ ls {enter}
+
+ create-user.sh install-kubernetes.sh install-node.sh
+
+ ./install-kubernetes.sh
+
+ ./install-node
+
+
+  # install kubernetes package manager helm
+
+   # Refer: kubernetes/README.md <= file
+
+    execute all the command in commandline
+  
+-----------------------------------------------------------------------------------
+
+ 1st go to aws console
+ |
+ aws services
+ |
+ services
+ |
+ IAM
+ |
+ create a new user -> (ex: prometheus)
+  
+ accesstype[.] <== enable 
+  |
+  |_programmetic access
+
+ |
+ (Next) 
+ |
+ set permission for prometheus 
+ 
+ [ add user to group ] [  ].. [attach existing policy]
+				|
+				Click 
+  policy type | cloudwatch | <== type cloudwatch
+
+  [.] cloudwatch
+     |
+     |
+  created a user
+     |
+   download csv
+     |
+   [user]		[accesskey]   [secretkey]
+  ex:prometheus				 |
+  					[show]
+					 |
+				copy the keys then goto terminal
+
+ vi ~/.aws/credientials {enter}
+
+ [default]
+ aws_access_key_id=<youraccessKey>
+ aws_secreat_key=<your_secreat_access_key>
+
+ :wq
+ ------------------------------------------------//
+
+ vi /etc/cloudwatchexporter/cloudwatchexporter.yml {Enter}
+
+ ---
+ region: <regionName>
+ metrics:
+ - aws_namespace: 
+   ..  
+ 
+ 
+  
+ aws_elb_healthy_host 
+ ...
+
+ 
+ metric format
+ ------------- 
+ aws_cpu_total_time ---- aws
+ prometheus_cpu_total_time --- localhost
+ node_cpu_total_time --- remotenode
+ 
+ --------------------------------------------------------------------------------------
+ TLS
+ ----
+  |__Transport Layer security 
+
+ TLS protocol - provide encrypt our appln(https)
+  	    		--------
+			 |->confidentiality
+			 |->integrity
+			 |->authenticity
+			-------------------//through cerificates btn 2 or more system
+
+ 
+ Prometheus supports TLS encryption
+
+ 127.0.0.1:9090
+ 
+ # public view 
+
+
+ # enforce TLS ?
+   -------------
+    |->create web configuration
+
+ ex: hostname is host01
+		 ------
+ 		  |
+		1.SSL certificate  ->hostname.crt (ex: host01.example.com.crt)
+		2.SSL Keyfile	   ->hostname.key (ex: host01.example.com.key)
+
+		
+ webconfig file (ex: /etc/nginx/sites-enabled/prometheus)
+ ---------------
+ tls_server_config:
+   cert_file: hostname.crt
+   key_file: hostname.key
+
+ |
+ Prometheus use the config file (vi /etc/systemd/system/prometheus.service)
+ |
+ prometheus \
+   --config.file=/etc/prometheus/prometheus.yml
+   --web.config=<path>
+ 
+ |
+
+ htpasswd -c webconfig htpasswd <user>
+ ...
+ ...
+ cat /etc/webserver/.htpasswd
+	 (apache2) 
+	 (nginx)	
+
+ 127.0.0.1:9090
+
+ Login:
+
+ passwd:
+ --------------------------------------------------------------------------------------
+
+ /etc/grafana/grafana.ini
+
+ /var/lib/grafana/
+
+ 
+
+ +------------------------+
+ | m/c      		 |
+ | ---
+ |  install grafana  - 3_install_grafana.sh 
+ |  import dashboard
+ |  configure datasource 
+ |
+ |-----
+ +
+ open a broswer -> IP:3000 {enter}
+ ....
+ ....
+ 
+		
+ 
+			
+  
+     mynode
+    ---------
+     Dashboard
+     Datasource
+     ------------------------------->json file format		- import json file
+     				     =================		  configure datasource //manual way
+ 
+---------------------------------------------------------------------------------------------------
+
+ /etc/grafana/dashboards/dashboard.yml
+	 |
+	 |_ datasource/datasource.yml
+
+ /var/lib/grafana/dashboard/filename.json
+
+ --------------------------------------------------------------------------------------------------
+ 
+ prometheus - metric - number
+  |
+ grafana loki 
+ -------------
+  - data source - text format loggin details 
+		  ------------
+			->understanding format
+ 
+ promtail - promtail is the client which fetches and forwards the log to loki
+ 
+ loki      -  log aggregation system
+
+ grafana   - visualization tool
+ 
+           ____________
+ [log]-->--| promtail |------>[loki]----->[grafana]
+ [log]-->--|__________|
+                          [index][chunck]
+			     |
+			   metadata
+
+
+  download promtail,loki  # (ex: https://github.com/grafana/loki/releases/download/v2.4.2/promtail-darwin-arm64.zip )
+  |
+  |	(ex: https://github.com/grafana/loki/releases/download/v2.4.2/loki-linux-amd64.zip) 
+  |
+  download promtail configuration,loki configuration
+ 
+  ./promtail file=promtail_local_config.yml
+
+  ./loki  file=loki-config.yml
+
+   |
+  grafana - datasouce ->loki 
+
+  Explore ->LogBroswer {filename="<inputlog file>"}
+
+  ....
+  ....
+				
+ -----------------------------------------------------------------------------------------------------
+ 
+ How to embedded grafana dashboard with html page?
+
+ step 1: goto grafana config file (INI)
+
+ step 2: [auth:anonymous]
+         ;enable=true<==(old value)
+         enable=true <== new value - remove ; 
+ save and exit
+
+ systemctl restart grafana-server 
+
+ |
+ open a grafana -> share ->link ->copy link (dashboard link)
+
+  <iframe src="<paste grafana dashboard URL"> .. </iframe>
+  |
+  |
+<iframe src="http://localhost:3000/goto/pqhq3qYnk?orgId=1"></iframe>
+	 
+  open a html file - in broswer
+
+ ex:-
+ ----
+ <html>
+<head>
+<title>CGI Application</title>
+<body>
+<h1 align="center">
+<iframe src="http://localhost:3000/goto/pqhq3qYnk?orgId=1"></iframe>
+</body>
+</html>
+-----------------------------------------------------------------------------------------------------
+ grafana visualization + loki logging
+ -------
+   | |_grafana-cli 
+   |
+   +
+   |
+  datasource (TSDB)
+
+ prometheus - datasource - timeseries - monitoring 
+					 |_metric (number) - grafana
+						    |
+						  alertmanager(based on Condition)
+
+	[node_exporter]
+	[pushgateway]
+	[alertmanager]
+	[application-custom metric - prometheus client libs]
+	
+	[service discovery] - container+cloud 
+	
+
+	- config file: file.yml
+	  |
+	- service: file.service (unit file)
+	  |
+	- binary: file <== download this binary from github.com/prometheus/...
+-----------------------------------------------------------------------------------------------------		
+ docs link: https://github.com/flaskappcode/grafana-and-prometheus
+ ----------
+=====================================================================================================

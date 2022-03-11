@@ -1,0 +1,36 @@
+Oracle Cloud Infrastructure Container Engine for Kubernetes
+================================================================
+https://www.oracle.com/webfolder/technetwork/tutorials/obe/oci/oke-full/index.html
+
+
+
+K8s microservice monitoring using Prometheus and Grafana.
+==========================================================
+https://faun.pub/k8s-microservice-monitoring-using-prometheus-and-grafana-106d0397b01b
+
+
+Cloud Native - Monitoring with Prometheus
+==========================================
+https://oracle.github.io/cloudtestdrive/AppDev/cloud-native/livelabs/individual/kubernetes/kubernetes-complete/index.html?lab=monitoring-with-prometheus-lab
+
+
+Setting Up Cluster Access
+==========================
+https://docs.oracle.com/en-us/iaas/Content/ContEng/Tasks/contengdownloadkubeconfigfile.htm
+
+
+
+Monitoring OKE with Prometheus and Grafana
+===========================================
+https://blogs.oracle.com/cloudnative/post/monitoring-oke-with-prometheus-and-grafana
+
+
+OCI Monitoring via Prometheus (Service Discovery)
+=================================================
+https://medium.com/@sw_samuraj/oci-monitoring-via-prometheus-service-discovery-851f022f0cdb
+
+
+
+OCI Management Agents to Collect Performance Metrics for Cloud-Native Environments
+====================================================================================
+https://blogs.oracle.com/observability/post/using-oci-management-agents-to-collect-performance-metrics-for-cloud-native-environments
