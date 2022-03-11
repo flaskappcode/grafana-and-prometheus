@@ -1,0 +1,13 @@
+https://zhimin-wen.medium.com/custom-prometheus-metrics-for-apps-running-in-kubernetes-498d69ada7aa
+
+https://www.sentinelone.com/blog/prometheus-metrics-by-example/
+
+https://sysdig.com/blog/prometheus-metrics/
+
+https://ikod.medium.com/custom-exporter-with-prometheus-b1c23cb24e7a
+
+https://www.gspann.com/resources/blogs/developing-custom-exporter-for-prometheus-using-python/
+
+https://github.com/prometheus/client_ruby
+
+https://github.com/discourse/prometheus_exporter
